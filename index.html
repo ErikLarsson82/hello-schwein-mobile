@@ -1,18 +1,18 @@
-<!DOCTYPE html PUBLIC"-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<title>Räven och Björnen</title>
-<style>
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'mini';
-    overflow-y: hidden;
-    background-color: #4b692f;
-}
-</style>
-<body>
-<script src="node_modules/pixi.js/dist/pixi.js" charset="utf-8"></script>
-<script src="main.js" charset="utf-8"></script>
-</body>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="user-scalable=yes, initial-scale=0.5, maximum-scale=0.5, minimum-scale=1, width=device-width">
+        <title>Räven och Björnen</title>
+    </head>
+    <body>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script src="node_modules/pixi.js/dist/pixi.js" charset="utf-8"></script>
+    <script src="main.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        document.addEventListener('deviceready', function() {
+            console.log("Cordova is initialized and ready!");
+            game()
+        }, false);
+    </script>
+ </body>
 </html>

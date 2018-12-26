@@ -1,202 +1,273 @@
-const rendererHeight = 256
-const gameWidth = 260
-const gameHeight = 200
+function game() {
 
-const stage = new PIXI.Container()
-const renderer = PIXI.autoDetectRenderer(rendererHeight, rendererHeight, {
-    antialias: false,
-    transparent: false,
-    resolution: 1
-})
-document.body.appendChild(renderer.view)
+    var rendererHeight = 256
+    var gameWidth = 260
+    var gameHeight = 200
 
-renderer.view.style.position = "absolute"
-renderer.view.style.display = "block"
-renderer.view.style.marginLeft = "auto"
-renderer.view.style.marginRight = "auto"
-renderer.view.style.marginTop = "auto"
-renderer.view.style.marginBottom = "auto"
-renderer.view.style.left = "0"
-renderer.view.style.right = "0"
-renderer.view.style.top = "0"
-renderer.view.style.bottom = "0"
-renderer.view.style.imageRendering = 'pixelated'
+    var stage = new PIXI.Container()
+    var renderer = PIXI.autoDetectRenderer(rendererHeight, rendererHeight, {
+        antialias: false,
+        transparent: false,
+        resolution: 1
+    })
+    document.body.appendChild(renderer.view)
 
-PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST // Default pixel-scaling
+    renderer.view.style.position = "absolute"
+    renderer.view.style.display = "block"
+    renderer.view.style.marginLeft = "auto"
+    renderer.view.style.marginRight = "auto"
+    renderer.view.style.marginTop = "auto"
+    renderer.view.style.marginBottom = "auto"
+    renderer.view.style.left = "0"
+    renderer.view.style.right = "0"
+    renderer.view.style.top = "0"
+    renderer.view.style.bottom = "0"
+    renderer.view.style.imageRendering = 'pixelated'
 
-function resize() {
-    const zoomScaleWidth = (window.innerWidth - (window.innerWidth % gameWidth)) / gameWidth
-    const zoomScaleHeight = (window.innerHeight - (window.innerHeight % gameHeight)) / gameHeight
-    const zoomScale = Math.min(zoomScaleWidth, zoomScaleHeight)
-    renderer.view.style.width = gameWidth * zoomScale + 'px'
-    renderer.view.style.height = gameHeight * zoomScale + 'px'
-}
-window.addEventListener("resize", resize)
+    PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST // Default pixel-scaling
 
-resize()
+    function resize() {
+        console.log('resize to width', window.innerWidth)
 
-renderer.resize(gameWidth, gameHeight)
-renderer.backgroundColor = 0x4b692f
-PIXI.loader.add('fox.png')
-PIXI.loader.add('bear.png')
-PIXI.loader.add('bear_sleeping.png')
-PIXI.loader.add('bear_angry.png')
-PIXI.loader.add('bush.png')
-PIXI.loader.add('logo.png')
-PIXI.loader.load(splash)
+        /* //PC
+        var zoomScaleWidth = (window.innerWidth - (window.innerWidth % gameWidth)) / gameWidth
+        var zoomScaleHeight = (window.innerHeight - (window.innerHeight % gameHeight)) / gameHeight
+        var zoomScale = Math.min(zoomScaleWidth, zoomScaleHeight)
+        renderer.view.style.width = gameWidth * zoomScale + 'px'
+        renderer.view.style.height = gameHeight * zoomScale + 'px'
+        */
 
-let pad = 5
-let gameStarted = false
-let found = false
-let fox
-let bear
-let logo
-let running
-let bushIndex = -1
-let bushes
-let bushPos = [
-    {x: 20, y: 0},
-    {x: 130, y: 50},
-    {x: 300, y: 40},
-]
-let bears
-let bearPos = [
-    {x: 90, y: 0},
-]
-let animations = []
+        // Cocoon IO
+        var scale = Math.min(window.innerHeight/gameHeight, window.innerWidth/gameWidth);
 
-window.addEventListener("keydown", e => {
-    if (e.keyCode === 32) {
-        if (gameStarted) {
-            run()
-        } else {
-            startGame()
-        }
+        renderer.view.style.width = gameWidth * scale
+        renderer.view.style.height = gameHeight * scale
+        renderer.view.style.left = (window.innerWidth * 0.5 - gameWidth * scale * 0.5)
+        renderer.view.style.top = (window.innerHeight * 0.5 - gameHeight * scale * 0.5)
     }
-})
+    window.addEventListener("resize", resize)
 
-function run() {
-    if (running) return
-    running = true
-    bushIndex++
-    runFox()
-}
+    resize()
 
-function runFox() {
-    animations.push(animation(fox, [
-        { texture: PIXI.Texture.fromImage("fox.png"), time: 5 },
-        { texture: PIXI.Texture.fromImage("fox2.png"), time: 5 }
-    ]))
-}
+    renderer.resize(gameWidth, gameHeight)
+    renderer.backgroundColor = 0x4b692f
+    PIXI.loader.add('fox.png')
+    PIXI.loader.add('bear.png')
+    PIXI.loader.add('bear_sleeping.png')
+    PIXI.loader.add('bear_angry.png')
+    PIXI.loader.add('bush.png')
+    PIXI.loader.add('bush2.png')
+    PIXI.loader.add('stub.png')
+    PIXI.loader.add('logo.png')
+    PIXI.loader.load(splash)
 
-function cancelAnims() {
-    animations = []
-}
+    var pad = 5
+    var gameStarted = false
+    var cooldown
+    var found
+    var fox
+    var bear
+    var logo
+    var running
+    var bushIndex
+    var bushes
+    var bushPos = [
+        {x: 40, y: 10},
+        {x: 130, y: 50},
+        {x: 300, y: 40},
+    ]
+    var bears
+    var bearPos = [
+        {x: 90, y: 0},
+    ]
+    var animations = []
 
-function animation(sprite, frames) {
-
-    let timer = 0
-    let idx = 0
-
-    return function() {
-        timer++
-        if (timer >= frames[idx].time) {
-            timer = 0
-            idx++
-            if (idx > frames.length - 1) {
-                idx = 0    
+    window.addEventListener("keydown", function(e) {
+        if (e.keyCode === 32) {
+            if (gameStarted) {
+                cooldown === 0 && run()
+            } else {
+                found ? restartGame() : initGame()
             }
-            sprite.texture = frames[idx].texture
         }
-    }
-}
-
-function splash() {
-    logo = new PIXI.Sprite(PIXI.Texture.fromImage("logo.png"))
-    stage.addChild(logo)
-    renderer.render(stage)
-}
-
-function restartGame() {
-    for (var i = stage.children.length - 1; i >= 0; i--) {  stage.removeChild(stage.children[i]);};
-
-    startGame()
-}
-
-function startGame() {
-    gameStarted = true
-    stage.removeChild(logo)
-
-    fox = new PIXI.Sprite(PIXI.Texture.fromImage("fox.png"))
-    stage.addChild(fox)
-
-    bears = bearPos.map(pos => {
-        const bear = new PIXI.Sprite(PIXI.Texture.fromImage("bear.png"))
-        bear.position.x = pos.x
-        bear.position.y = pos.y
-        bear.INTERVAL = 180
-        bear.timer = bear.INTERVAL
-        bear.awake = true
-        stage.addChild(bear)
-        return bear
     })
 
-    bushes = bushPos.map(pos => {
-        const bushContainer = new PIXI.Container()
-        bushContainer.position.x = pos.x
-        bushContainer.position.y = pos.y
-        stage.addChild(bushContainer)
-        const bush = new PIXI.Sprite(PIXI.Texture.fromImage("bush.png"))
-        bush.position.x = -3
-        bush.position.y = -3
-        bushContainer.addChild(bush)
-        return bushContainer
+    window.addEventListener("touchstart", function(e) {
+        if (gameStarted) {
+            cooldown === 0 && run()
+        } else {
+            found ? restartGame() : initGame()
+        }
     })
 
-    setInterval(gameloop, 16.6666)
-}
+    window.addEventListener("touchend", function(e) {
+        console.log('end', e)
+    })
 
-function gameloop() {
-    animations.forEach(x => x())
+    window.addEventListener("touchcancel", function(e) {
+        console.log('touchcancel', e)
+    })
 
-    if (running && !found) {
-        let bush = bushes[bushIndex]
+    window.addEventListener("touchmove", function(e) {
+        console.log('touchmove', e)
+    })
 
-        if (fox.position.x < bush.position.x) {
-            fox.position.x++
-        }
-        if (fox.position.x > bush.position.x) {
-            fox.position.x--
-        }
-        if (fox.position.y < bush.position.y) {
-            fox.position.y++
-        }
-        if (fox.position.y > bush.position.y) {
-            fox.position.y--
-        }
-        if (fox.position.x === bush.position.x && fox.position.y === bush.position.y) {
-            running = false
-            cancelAnims()
+    function run() {
+        if (running) return
+        running = true
+        bushIndex++
+        runFox()
+    }
+
+    function runFox() {
+        animations.push(animation(fox, [
+            { texture: PIXI.Texture.fromImage("fox.png"), time: 5 },
+            { texture: PIXI.Texture.fromImage("fox2.png"), time: 5 }
+        ]))
+    }
+
+    function cancelAnims() {
+        animations = []
+    }
+
+    function animation(sprite, frames) {
+
+        var timer = 0
+        var idx = 0
+
+        return function() {
+            timer++
+            if (timer >= frames[idx].time) {
+                timer = 0
+                idx++
+                if (idx > frames.length - 1) {
+                    idx = 0    
+                }
+                sprite.texture = frames[idx].texture
+            }
         }
     }
-    if (found) {
-        fox.position.x = fox.position.x - 1.5
-        fox.scale.x = -1
+
+    function splash() {
+        logo = new PIXI.Sprite(PIXI.Texture.fromImage("logo.png"))
+        stage.addChild(logo)
+        renderer.render(stage)
     }
-    bears.forEach(bear => {
-        bear.timer--
-        if (!found && bear.timer < 0) {
-            bear.awake = !bear.awake
+
+    function restartGame() {
+        cancelAnims()
+        for (var i = stage.children.length - 1; i >= 0; i--) {  stage.removeChild(stage.children[i]);};
+
+        startGame()
+    }
+
+    function initGame() {
+        stage.removeChild(logo)
+        setInterval(gameloop, 16.6666)
+        startGame()
+    }
+
+    function startGame() {
+        gameStarted = true
+        running = false
+        found = false
+        bushIndex = -1
+        cooldown = 20
+
+        fox = new PIXI.Sprite(PIXI.Texture.fromImage("fox.png"))
+        fox.position.x = 10
+        fox.position.y = 10
+        stage.addChild(fox)
+
+        const bush2 = new PIXI.Sprite(PIXI.Texture.fromImage("bush2.png"))
+        bush2.position.x = 100
+        bush2.position.y = 140
+        stage.addChild(bush2)
+
+        const bush3 = new PIXI.Sprite(PIXI.Texture.fromImage("bush2.png"))
+        bush3.position.x = 200
+        bush3.position.y = 170
+        stage.addChild(bush3)
+
+        const stub = new PIXI.Sprite(PIXI.Texture.fromImage("stub.png"))
+        stub.position.x = 20
+        stub.position.y = 120
+        stage.addChild(stub)
+
+        bears = bearPos.map(function(pos) {
+            const bear = new PIXI.Sprite(PIXI.Texture.fromImage("bear.png"))
+            bear.position.x = pos.x
+            bear.position.y = pos.y
+            bear.INTERVAL = 180
             bear.timer = bear.INTERVAL
-            bear.texture = PIXI.Texture.fromImage(bear.awake ? "bear.png" : "bear_sleeping.png")
+            bear.awake = true
+            stage.addChild(bear)
+            return bear
+        })
+
+        bushes = bushPos.map(function(pos) {
+            const bushContainer = new PIXI.Container()
+            bushContainer.position.x = pos.x
+            bushContainer.position.y = pos.y
+            stage.addChild(bushContainer)
+            const bush = new PIXI.Sprite(PIXI.Texture.fromImage("bush.png"))
+            bush.position.x = -3
+            bush.position.y = -3
+            bushContainer.addChild(bush)
+            return bushContainer
+        })
+    }
+
+    function gameloop() {
+        animations.forEach(function(x) { x() })
+
+        if (fox.position.x < 0) {
+            gameStarted = false
         }
-        if (bear.awake && running && bushIndex > 0 && !found) {
-            found = true
-            animations.push(animation(bear, [
-                { texture: PIXI.Texture.fromImage("bear.png"), time: 10 },
-                { texture: PIXI.Texture.fromImage("bear_angry.png"), time: 10 },
-            ]))
+
+        cooldown > 0 && cooldown--
+
+        if (running && !found) {
+            var bush = bushes[bushIndex]
+
+            if (!bush) return
+                
+            if (fox.position.x < bush.position.x) {
+                fox.position.x++
+            }
+            if (fox.position.x > bush.position.x) {
+                fox.position.x--
+            }
+            if (fox.position.y < bush.position.y) {
+                fox.position.y++
+            }
+            if (fox.position.y > bush.position.y) {
+                fox.position.y--
+            }
+            if (fox.position.x === bush.position.x && fox.position.y === bush.position.y) {
+                running = false
+                cancelAnims()
+            }
         }
-    })
-    renderer.render(stage)
+        if (found) {
+            fox.position.x = fox.position.x - 1.5
+            fox.scale.x = -1
+        }
+        bears.forEach(function(bear) {
+            bear.timer--
+            if (!found && bear.timer < 0) {
+                bear.awake = !bear.awake
+                bear.timer = bear.INTERVAL
+                bear.texture = PIXI.Texture.fromImage(bear.awake ? "bear.png" : "bear_sleeping.png")
+            }
+            if (bear.awake && running && bushIndex > 0 && !found && fox.position.x < gameWidth) {
+                found = true
+                animations.push(animation(bear, [
+                    { texture: PIXI.Texture.fromImage("bear.png"), time: 10 },
+                    { texture: PIXI.Texture.fromImage("bear_angry.png"), time: 10 },
+                ]))
+            }
+        })
+        renderer.render(stage)
+    }
 }
