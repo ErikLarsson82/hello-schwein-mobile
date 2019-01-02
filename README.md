@@ -1,5 +1,5 @@
 # hello-schwein-mobile
-Hello world - Javascript game environment for mobile development
+Hello world - Javascript game environment for mobile development using PIXI.js and Cocoon JS
 
 ## Tested with:
 + node v8.9.1
