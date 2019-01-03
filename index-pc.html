@@ -5,14 +5,12 @@
         <title>Hello Schwein</title>
     </head>
     <body>
-    <script type="text/javascript" src="cordova.js"></script>
     <script src="node_modules/pixi.js/dist/pixi.js" charset="utf-8"></script>
     <script src="main.js" charset="utf-8"></script>
     <script type="text/javascript">
-        document.addEventListener('deviceready', function() {
-            console.log("Cordova is initialized and ready!");
+        window.addEventListener('load', function() {
             game()
-        }, false);
+        });
     </script>
  </body>
 </html>
